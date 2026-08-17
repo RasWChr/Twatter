@@ -15,7 +15,8 @@ export function GetAllPosts() {
     return <div>
         {
             posts.map(p => {
-                return <MyChildComponent key={p.id} post={p}/>
+                // @ts-ignore
+              return <MyChildComponent key={p.id} post={p}/>
             })
         }
     </div>;
@@ -26,9 +27,12 @@ interface MyChildComponentProps {
 
 }
 
-function MyChildComponent({post, removeProduct}: MyChildComponentProps) {
+function MyChildComponent({post}: MyChildComponentProps) {
 
-    return <div>{post?.title} </div>
+    return <>
+      <div style={{padding: '5px'}}>{post?.title} </div>
+      <div> {post?.body}</div>
+    </>
 }
 
 export interface Root {

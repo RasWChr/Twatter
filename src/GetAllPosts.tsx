@@ -12,11 +12,18 @@ export function GetAllPosts() {
             });
     }, []);
 
+    function removeProduct(id: number) {
+        const duplicate = [...posts];
+        const filteredArray = duplicate.filter(p => p.id != id)
+        setPosts(filteredArray)
+    }
+
+
     return <div>
         {
             posts.map(p => {
                 // @ts-ignore
-              return <MyChildComponent key={p.id} post={p}/>
+              return <MyChildComponent key={p.id} post={p} removeProduct={removeProduct}/>
             })
         }
     </div>;
@@ -27,11 +34,12 @@ interface MyChildComponentProps {
 
 }
 
-function MyChildComponent({post}: MyChildComponentProps) {
+function MyChildComponent({post, removeProduct}: MyChildComponentProps) {
 
     return <>
       <div style={{padding: '5px'}}>{post?.title} </div>
       <div> {post?.body}</div>
+        <div> <button onClick={() => removeProduct(post.id)}>Delete</button></div>
     </>
 }
 

@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import { CreatePostForm } from "./CreatePostForm.tsx";
 
 export function GetAllPosts() {
 
@@ -18,8 +19,12 @@ export function GetAllPosts() {
         setPosts(filteredArray)
     }
 
+    function addPost(post: Post) {
+        setPosts(prev => [post, ...prev])
+    }
 
     return <div>
+            <CreatePostForm onCreate={addPost} />
         {
             posts.map(p => {
                 // @ts-ignore
@@ -34,6 +39,7 @@ interface MyChildComponentProps {
 
 }
 
+// @ts-ignore
 function MyChildComponent({post, removeProduct}: MyChildComponentProps) {
 
     return <>

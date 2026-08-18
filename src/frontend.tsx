@@ -5,17 +5,40 @@
  * It is included in `src/index.html`.
  */
 
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import {createRoot} from "react-dom/client";
+import {createBrowserRouter, RouterProvider} from "react-router";
 import { GetAllPosts } from "./GetAllPosts.tsx";
 import { GetSinglePost } from "./GetSinglePost.tsx";
 
 const elem = document.getElementById("root")!;
 const app = (
-  <StrictMode>
-    <GetSinglePost />
-  </StrictMode>
+
+    <>
+        <RouterProvider router={createBrowserRouter([
+
+            {
+                path: '/',
+                element: <GetAllPosts />
+            },
+            {
+                path: "/GetSinglePost/:id",
+                element: <GetSinglePost />,
+                children: [
+                ]
+            }
+
+        ])} />
+    </>
 );
 
-// https://bun.com/docs/bundler/hot-reloading#import-meta-hot-data
-(import.meta.hot.data.root ??= createRoot(elem)).render(app);
+
+
+if (import.meta.hot) {
+    // With hot module reloading, `import.meta.hot.data` is persisted.
+    const root = (import.meta.hot.data.root ??= createRoot(elem));
+    root.render(app);
+} else {
+    // The hot module reloading API is not available in production.
+    createRoot(elem).render(app);
+}
+

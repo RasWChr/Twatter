@@ -1,38 +1,37 @@
 import {useEffect, useState} from "react";
+import {Outlet, useParams} from "react-router";
+import type {Root, Post} from "./Interface.tsx"
 
 
 export function GetSinglePost() {
 
-    const [post, setPost] = useState<Root | null>(null);
+    const [post, setPost] = useState<Post>();
+
+    const params = useParams()
 
     useEffect(() => {
-        fetch('https://dummyjson.com/posts/1')
+        fetch('https://dummyjson.com/posts/'+params.id)
             .then(res => res.json())
-            .then((json: Root) => {
+            .then((json: Post) => {
                 setPost(json);
             });
     }, []);
 
-    function removePost() {
-        setPost(null);
-    }
-
 
     return (
         <div>
-            {post && <MyChildComponent post={post} removePost={removePost} />}
+            {post && <MyChildComponent post={post} />}
         </div>
     );
 }
 
 
 interface MyChildComponentPost {
-    post: Root,
-    removePost: () => void
+    post: Post
 }
 
 
-function MyChildComponent({post, removePost}: MyChildComponentPost) {
+function MyChildComponent({post}: MyChildComponentPost) {
 
     return <>
         <div style={{padding: '5px'}}>{post?.title} </div>
@@ -43,17 +42,3 @@ function MyChildComponent({post, removePost}: MyChildComponentPost) {
 }
 
 
-export interface Root {
-    id: number
-    title: string
-    body: string
-    tags: string[]
-    reactions: Reactions
-    views: number
-    userId: number
-}
-
-export interface Reactions {
-    likes: number
-    dislikes: number
-}

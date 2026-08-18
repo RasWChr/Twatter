@@ -1,5 +1,7 @@
 import {useEffect, useState} from "react";
 import { CreatePostForm } from "./CreatePostForm.tsx";
+import {useLocation, useNavigate} from "react-router";
+import type {Root, Post} from "./Interface";
 
 export function GetAllPosts() {
 
@@ -42,31 +44,13 @@ interface MyChildComponentPosts {
 // @ts-ignore
 function MyChildComponent({post, removePost}: MyChildComponentPosts) {
 
+    const navigate = useNavigate()
+
     return <>
-      <div style={{padding: '5px'}}>{post?.title} </div>
+      <div style={{padding: '5px'}}> <a onClick={() => {
+          navigate('/GetSinglePost/'+post.id)
+      }}>{post?.title} </a></div>
       <div> {post?.body}</div>
         <div> <button onClick={() => removePost(post.id)}>Delete</button></div>
     </>
-}
-
-export interface Root {
-    posts: Post[]
-    total: number
-    skip: number
-    limit: number
-}
-
-export interface Post {
-    id: number
-    title: string
-    body: string
-    tags: string[]
-    reactions: Reactions
-    views: number
-    userId: number
-}
-
-export interface Reactions {
-    likes: number
-    dislikes: number
 }

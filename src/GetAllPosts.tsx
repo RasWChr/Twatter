@@ -1,19 +1,29 @@
 import {useEffect, useState} from "react";
 import { CreatePostForm } from "./CreatePostForm.tsx";
-import {useLocation, useNavigate} from "react-router";
-import type {Root, Post} from "./Interface";
+import {useNavigate} from "react-router";
+import type {Post} from "./Interface";
 
 export function GetAllPosts() {
 
-    const [posts, setPosts] = useState<Root[]>([])
+    const [posts, setPosts] = useState<Post[]>([])
+    const [query, setQuery] = useState("")
 
     useEffect(() => {
-        fetch('https://dummyjson.com/posts')
-            .then(res => res.json())
-            .then((json) => {
-                setPosts(json.posts)
-            });
-    }, []);
+        const url = query.trim()
+            ? `https://dummyjson.com/posts/search?q=${encodeURIComponent(query.trim())}`
+            : 'https://dummyjson.com/posts'
+
+        // wait for typing to pause before hitting the API, instead of firing on every keystroke
+        const timeoutId = setTimeout(() => {
+            fetch(url)
+                .then(res => res.json())
+                .then((json) => {
+                    setPosts(json.posts)
+                });
+        }, 300)
+
+        return () => clearTimeout(timeoutId)
+    }, [query]);
 
     function removePost(id: number) {
         const duplicate = [...posts];
@@ -27,9 +37,14 @@ export function GetAllPosts() {
 
     return <div>
             <CreatePostForm onCreate={addPost} />
+            <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search posts..."
+                style={{padding: '5px', margin: '5px 0'}}
+            />
         {
             posts.map(p => {
-                // @ts-ignore
               return <MyChildComponent key={p.id} post={p} removePost={removePost}/>
             })
         }
@@ -38,10 +53,8 @@ export function GetAllPosts() {
 
 interface MyChildComponentPosts {
     post: Post;
-
 }
 
-// @ts-ignore
 function MyChildComponent({post, removePost}: MyChildComponentPosts) {
 
     const navigate = useNavigate()

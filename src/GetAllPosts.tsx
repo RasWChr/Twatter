@@ -13,7 +13,7 @@ export function GetAllPosts() {
             });
     }, []);
 
-    function removeProduct(id: number) {
+    function removePost(id: number) {
         const duplicate = [...posts];
         const filteredArray = duplicate.filter(p => p.id != id)
         setPosts(filteredArray)
@@ -28,24 +28,24 @@ export function GetAllPosts() {
         {
             posts.map(p => {
                 // @ts-ignore
-              return <MyChildComponent key={p.id} post={p} removeProduct={removeProduct}/>
+              return <MyChildComponent key={p.id} post={p} removePost={removePost}/>
             })
         }
     </div>;
 }
 
-interface MyChildComponentProps {
-    post: Post,
+interface MyChildComponentPosts {
+    post: Post;
 
 }
 
 // @ts-ignore
-function MyChildComponent({post, removeProduct}: MyChildComponentProps) {
+function MyChildComponent({post, removePost}: MyChildComponentPosts) {
 
     return <>
       <div style={{padding: '5px'}}>{post?.title} </div>
       <div> {post?.body}</div>
-        <div> <button onClick={() => removeProduct(post.id)}>Delete</button></div>
+        <div> <button onClick={() => removePost(post.id)}>Delete</button></div>
     </>
 }
 

@@ -8,11 +8,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { GetAllPosts } from "./GetAllPosts.tsx";
+import { GetSinglePost } from "./GetSinglePost.tsx";
 
 const elem = document.getElementById("root")!;
 const app = (
   <StrictMode>
-    <GetAllPosts />
+    <GetSinglePost />
   </StrictMode>
 );
 

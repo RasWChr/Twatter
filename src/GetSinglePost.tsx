@@ -33,10 +33,12 @@ interface MyChildComponentPost {
 
 function MyChildComponent({post}: MyChildComponentPost) {
 
+
     return <>
         <div style={{padding: '5px'}}>{post?.title} </div>
-    <div style={{padding: '10px'}}> {post?.body}</div>
-        <div> {post?.tags}</div>
+    <div style={{padding: '10px'}}> {post?.body} </div>
+        <div> {post?.tags?.join(' ')} </div>
+        <div> views {post?.views} </div>
 
     </>
 }

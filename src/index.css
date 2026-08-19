@@ -2,10 +2,11 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
+  color: rgb(29 35 74);
   background-color: #242424;
 }
 body {
+  background-color: #1d234a;
   margin: 0;
   display: grid;
   place-items: center;

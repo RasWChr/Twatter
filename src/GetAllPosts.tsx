@@ -5,7 +5,9 @@ import type {Post} from "./Interface";
 
 export function GetAllPosts() {
 
-    const [posts, setPosts] = useState<Post[]>([])
+    const [apiPosts, setApiPosts] = useState<Post[]>([])
+    const [createdPosts, setCreatedPosts] = useState<Post[]>([])
+    const [deletedIds, setDeletedIds] = useState<Set<number>>(new Set())
     const [query, setQuery] = useState("")
 
     useEffect(() => {
@@ -13,12 +15,11 @@ export function GetAllPosts() {
             ? `https://dummyjson.com/posts/search?q=${encodeURIComponent(query.trim())}`
             : 'https://dummyjson.com/posts'
 
-        // wait for typing to pause before hitting the API, instead of firing on every keystroke
         const timeoutId = setTimeout(() => {
             fetch(url)
                 .then(res => res.json())
                 .then((json) => {
-                    setPosts(json.posts)
+                    setApiPosts(json.posts)
                 });
         }, 300)
 
@@ -26,26 +27,38 @@ export function GetAllPosts() {
     }, [query]);
 
     function removePost(id: number) {
-        const duplicate = [...posts];
-        const filteredArray = duplicate.filter(p => p.id != id)
-        setPosts(filteredArray)
+        if (id < 0) {
+            // locally created post, never makes it to the server so just gets dropped.
+            setCreatedPosts(prev => prev.filter(p => p.id !== id))
+            return
+        }
+        // For posts from the API, ensures that they stay hidden through future fetches.
+        setDeletedIds(prev => new Set(prev).add(id))
     }
 
     function addPost(post: Post) {
-        setPosts(prev => [post, ...prev])
+        setCreatedPosts(prev => [post, ...prev])
     }
 
+    const q = query.trim().toLowerCase()
+    const visibleCreated = createdPosts.filter(p =>
+        !deletedIds.has(p.id) &&
+        (!q || p.title.toLowerCase().includes(q) || p.body.toLowerCase().includes(q))
+    )
+    const visibleApi = apiPosts.filter(p => !deletedIds.has(p.id))
+    const posts = [...visibleCreated, ...visibleApi]
+
     return <div>
-            <CreatePostForm onCreate={addPost} />
-            <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search posts..."
-                style={{padding: '5px', margin: '5px 0'}}
-            />
+        <CreatePostForm onCreate={addPost} />
+        <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search posts..."
+            style={{padding: '5px', margin: '5px 0'}}
+        />
         {
             posts.map(p => {
-              return <MyChildComponent key={p.id} post={p} removePost={removePost}/>
+                return <MyChildComponent key={p.id} post={p} removePost={removePost}/>
             })
         }
     </div>;
@@ -60,10 +73,10 @@ function MyChildComponent({post, removePost}: MyChildComponentPosts) {
     const navigate = useNavigate()
 
     return <>
-      <div style={{padding: '5px'}}> <a onClick={() => {
-          navigate('/GetSinglePost/'+post.id)
-      }}>{post?.title} </a></div>
-      <div> {post?.body}</div>
+        <div style={{padding: '5px'}}> <a onClick={() => {
+            navigate('/GetSinglePost/'+post.id)
+        }}>{post?.title} </a></div>
+        <div> {post?.body}</div>
         <div> <button onClick={() => removePost(post.id)}>Delete</button></div>
     </>
 }

@@ -2,11 +2,14 @@ import {useEffect, useState} from "react";
 import { CreatePostForm } from "./CreatePostForm.tsx";
 import {useNavigate} from "react-router";
 import type {Post} from "./Interface";
-import {COLORS} from "./Colours.tsx";
+import {COLORS} from "./Colours.tsx"
+
+type ReactionKey = 'likes' | 'dislikes'
 
 export function GetAllPosts() {
     const [posts, setPosts] = useState<Post[]>([])
     const [query, setQuery] = useState("")
+    const [myReactions, setMyReactions] = useState<Record<number, ReactionKey | null>>({})
 
     useEffect(() => {
         const url = query.trim()
@@ -32,6 +35,21 @@ export function GetAllPosts() {
 
     function addPost(post: Post) {
         setPosts(prev => [post, ...prev])
+    }
+
+    function react(id: number, key: ReactionKey) {
+        const current = myReactions[id] ?? null
+        const next = current === key ? null : key
+
+        setPosts(prev => prev.map(p => {
+            if (p.id !== id) return p
+            const reactions = { ...p.reactions }
+            if (current) reactions[current] = Math.max(0, reactions[current] - 1)
+            if (next) reactions[next] = reactions[next] + 1
+            return { ...p, reactions }
+        }))
+
+        setMyReactions(prev => ({ ...prev, [id]: next }))
     }
 
     return (
@@ -75,7 +93,13 @@ export function GetAllPosts() {
             </div>
 
             {posts.map(p => (
-                <MyChildComponent key={p.id} post={p} removePost={removePost} />
+                <MyChildComponent
+                    key={p.id}
+                    post={p}
+                    removePost={removePost}
+                    react={react}
+                    myReaction={myReactions[p.id] ?? null}
+                />
             ))}
         </div>
     );
@@ -84,9 +108,11 @@ export function GetAllPosts() {
 interface MyChildComponentPosts {
     post: Post;
     removePost: (id: number) => void;
+    react: (id: number, key: ReactionKey) => void;
+    myReaction: ReactionKey | null;
 }
 
-function MyChildComponent({post, removePost}: MyChildComponentPosts) {
+function MyChildComponent({post, removePost, react, myReaction}: MyChildComponentPosts) {
     const navigate = useNavigate();
     const [hovered, setHovered] = useState(false);
 
@@ -126,11 +152,7 @@ function MyChildComponent({post, removePost}: MyChildComponentPosts) {
                     </span>
                 </div>
 
-                <div style={{
-                    fontWeight: 600,
-                    fontSize: '15px',
-                    margin: '2px 0',
-                }}>
+                <div style={{fontWeight: 600, fontSize: '15px', margin: '2px 0'}}>
                     {post.title}
                 </div>
                 <div style={{fontSize: '15px', lineHeight: 1.4, color: COLORS.text}}>
@@ -148,7 +170,20 @@ function MyChildComponent({post, removePost}: MyChildComponentPosts) {
                 }}>
                     <ActionIcon label="💬" count={post.reactions?.likes ?? 0} />
                     <ActionIcon label="🔁" count={0} />
-                    <ActionIcon label="♥" count={post.reactions?.likes ?? 0} />
+                    <ReactionButton
+                        label="♥"
+                        count={post.reactions?.likes ?? 0}
+                        activeColor={COLORS.danger}
+                        active={myReaction === 'likes'}
+                        onClick={() => react(post.id, 'likes')}
+                    />
+                    <ReactionButton
+                        label="👎"
+                        count={post.reactions?.dislikes ?? 0}
+                        activeColor={COLORS.accent}
+                        active={myReaction === 'dislikes'}
+                        onClick={() => react(post.id, 'dislikes')}
+                    />
                     <ActionIcon label="👁" count={post.views} />
                     <button
                         onClick={(e) => {
@@ -179,5 +214,38 @@ function ActionIcon({label, count}: {label: string; count: number}) {
         <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
             {label} {count}
         </span>
+    );
+}
+
+function ReactionButton({label, count, activeColor, active, onClick}: {
+    label: string;
+    count: number;
+    activeColor: string;
+    active: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            onClick={(e) => {
+                e.stopPropagation();
+                onClick();
+            }}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'none',
+                border: 'none',
+                color: active ? activeColor : COLORS.subtext,
+                fontWeight: active ? 700 : 400,
+                cursor: 'pointer',
+                fontSize: '13px',
+                padding: 0,
+            }}
+            onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = activeColor }}
+            onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = COLORS.subtext }}
+        >
+            {label} {count}
+        </button>
     );
 }

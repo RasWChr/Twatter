@@ -3,10 +3,13 @@ import {useNavigate, useParams} from "react-router";
 import type {Post, Comment} from "./Interface.tsx"
 import {COLORS} from "./Colours.tsx"
 
+type ReactionKey = 'likes' | 'dislikes'
+
 export function GetSinglePost() {
 
     const [post, setPost] = useState<Post>();
     const [comment, setComment] = useState<Comment[]>([]);
+    const [myReaction, setMyReaction] = useState<ReactionKey | null>(null);
 
     const params = useParams()
 
@@ -26,6 +29,19 @@ export function GetSinglePost() {
             });
     }, [params.id]);
 
+    function react(key: ReactionKey) {
+        const next = myReaction === key ? null : key
+
+        setPost(prev => {
+            if (!prev) return prev
+            const reactions = { ...prev.reactions }
+            if (myReaction) reactions[myReaction] = Math.max(0, reactions[myReaction] - 1)
+            if (next) reactions[next] = reactions[next] + 1
+            return { ...prev, reactions }
+        })
+
+        setMyReaction(next)
+    }
 
     return (
         <div style={{
@@ -52,7 +68,7 @@ export function GetSinglePost() {
                 <h2 style={{margin: 0, fontSize: '20px', fontWeight: 800}}>Post</h2>
             </div>
 
-            {post && <MyChildComponent post={post} comment={comment} />}
+            {post && <MyChildComponent post={post} comment={comment} react={react} myReaction={myReaction} />}
         </div>
     );
 }
@@ -80,14 +96,14 @@ function BackButton() {
     );
 }
 
-
 interface MyChildComponentPost {
     post: Post,
     comment?: Comment[]
+    react: (key: ReactionKey) => void
+    myReaction: ReactionKey | null
 }
 
-
-function MyChildComponent({post, comment}: MyChildComponentPost) {
+function MyChildComponent({post, comment, react, myReaction}: MyChildComponentPost) {
 
     const avatarHue = (post.id * 47) % 360;
 
@@ -141,8 +157,20 @@ function MyChildComponent({post, comment}: MyChildComponentPost) {
                         fontSize: '13px',
                     }}>
                         <span>👁 {post.views} views</span>
-                        <span>♥ {post.reactions?.likes ?? 0}</span>
-                        <span>👎 {post.reactions?.dislikes ?? 0}</span>
+                        <ReactionButton
+                            label="♥"
+                            count={post.reactions?.likes ?? 0}
+                            activeColor={COLORS.danger}
+                            active={myReaction === 'likes'}
+                            onClick={() => react('likes')}
+                        />
+                        <ReactionButton
+                            label="👎"
+                            count={post.reactions?.dislikes ?? 0}
+                            activeColor={COLORS.accent}
+                            active={myReaction === 'dislikes'}
+                            onClick={() => react('dislikes')}
+                        />
                     </div>
                 </div>
             </div>
@@ -174,5 +202,35 @@ function MyChildComponent({post, comment}: MyChildComponentPost) {
                 ))}
             </div>
         </>
+    );
+}
+
+function ReactionButton({label, count, activeColor, active, onClick}: {
+    label: string;
+    count: number;
+    activeColor: string;
+    active: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'none',
+                border: 'none',
+                color: active ? activeColor : COLORS.subtext,
+                fontWeight: active ? 700 : 400,
+                cursor: 'pointer',
+                fontSize: '13px',
+                padding: 0,
+            }}
+            onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = activeColor }}
+            onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = COLORS.subtext }}
+        >
+            {label} {count}
+        </button>
     );
 }

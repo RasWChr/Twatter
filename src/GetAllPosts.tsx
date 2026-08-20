@@ -2,7 +2,7 @@ import {useEffect, useState} from "react";
 import { CreatePostForm } from "./CreatePostForm.tsx";
 import {useNavigate} from "react-router";
 import type {Post} from "./Interface";
-import {COLORS} from "./colours"
+import {COLORS} from "./Colours.tsx";
 
 export function GetAllPosts() {
     const [posts, setPosts] = useState<Post[]>([])
